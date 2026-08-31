@@ -296,7 +296,12 @@ export interface KnowledgeSemanticOutboxEntry {
   completedAt?: Date;
 }
 
-export interface CreateKnowledgeNodeInput {
+export interface KnowledgeMutationFence {
+  /** Access epoch observed by the authorizing facade. Adapters reject stale authorized writes atomically. */
+  expectedAccessEpoch?: number;
+}
+
+export interface CreateKnowledgeNodeInput extends KnowledgeMutationFence {
   id?: string;
   importRunId?: string;
   name: string;
@@ -306,7 +311,7 @@ export interface CreateKnowledgeNodeInput {
   scopeIds: KnowledgeScopeIds;
   contextScopeId?: string;
 }
-export interface UpdateKnowledgeNodeInput {
+export interface UpdateKnowledgeNodeInput extends KnowledgeMutationFence {
   id: string;
   version: number;
   importRunId?: string;
@@ -317,7 +322,7 @@ export interface UpdateKnowledgeNodeInput {
   scopeIds?: KnowledgeScopeIds;
   contextScopeId?: string;
 }
-export interface CreateKnowledgeRecordInput {
+export interface CreateKnowledgeRecordInput extends KnowledgeMutationFence {
   id?: string;
   importRunId?: string;
   node: KnowledgeNodeReference;
@@ -597,6 +602,9 @@ export abstract class KnowledgeStorage extends StorageDomain {
   async listScopeGrants(): Promise<KnowledgeScopeGrant[]> {
     throw new KnowledgeUnsupportedError();
   }
+  async upsertScopeGrant(_grant: KnowledgeScopeGrant): Promise<{ changed: boolean; accessEpoch: number }> {
+    throw new KnowledgeUnsupportedError();
+  }
   async getImportState(_input: {
     importerId: string;
     binding: string;
@@ -656,17 +664,23 @@ export abstract class KnowledgeStorage extends StorageDomain {
   async listNodeAddresses(_input: { source: string }): Promise<KnowledgeNodeAddress[]> {
     throw new KnowledgeUnsupportedError();
   }
-  async setNodeAddress(_input: KnowledgeNodeAddress): Promise<KnowledgeNodeAddress> {
+  async setNodeAddress(_input: KnowledgeNodeAddress & KnowledgeMutationFence): Promise<KnowledgeNodeAddress> {
     throw new KnowledgeUnsupportedError();
   }
   async createNodeWithAddress(_input: {
     source: string;
     address: string;
     node: CreateKnowledgeNodeInput;
+    expectedAccessEpoch?: number;
   }): Promise<KnowledgeNode> {
     throw new KnowledgeUnsupportedError();
   }
-  async removeNodeAddress(_input: { source: string; address: string; nodeId: string }): Promise<void> {
+  async removeNodeAddress(_input: {
+    source: string;
+    address: string;
+    nodeId: string;
+    expectedAccessEpoch?: number;
+  }): Promise<void> {
     throw new KnowledgeUnsupportedError();
   }
   async rebindNodeAddress(_input: {
@@ -675,6 +689,7 @@ export abstract class KnowledgeStorage extends StorageDomain {
     newAddress: string;
     nodeId: string;
     importRunId?: string;
+    expectedAccessEpoch?: number;
   }): Promise<KnowledgeNodeAddress> {
     throw new KnowledgeUnsupportedError();
   }
@@ -683,6 +698,7 @@ export abstract class KnowledgeStorage extends StorageDomain {
     address: string;
     scopeId: string;
     importRunId?: string;
+    expectedAccessEpoch?: number;
   }): Promise<DeleteKnowledgeNodeAddressResult> {
     throw new KnowledgeUnsupportedError();
   }
@@ -691,6 +707,7 @@ export abstract class KnowledgeStorage extends StorageDomain {
     source: string;
     version: number;
     importRunId?: string;
+    expectedAccessEpoch?: number;
   }): Promise<KnowledgeRecord> {
     throw new KnowledgeUnsupportedError();
   }
@@ -721,6 +738,7 @@ export abstract class KnowledgeStorage extends StorageDomain {
     targetId: string;
     sourceVersion: number;
     importRunId?: string;
+    expectedAccessEpoch?: number;
   }): Promise<KnowledgeNode> {
     throw new KnowledgeUnsupportedError();
   }
@@ -765,10 +783,19 @@ export abstract class KnowledgeStorage extends StorageDomain {
   async listRecordsBySource(_input: QueryKnowledgeRecordsBySourceInput): Promise<QueryKnowledgeRecordsOutput> {
     throw new KnowledgeUnsupportedError();
   }
-  async deleteRecord(_input: { id: string; deletedBy: string; importRunId?: string }): Promise<KnowledgeRecord> {
+  async deleteRecord(_input: {
+    id: string;
+    deletedBy: string;
+    importRunId?: string;
+    expectedAccessEpoch?: number;
+  }): Promise<KnowledgeRecord> {
     throw new KnowledgeUnsupportedError();
   }
-  async restoreRecord(_input: { id: string; importRunId?: string }): Promise<KnowledgeRecord> {
+  async restoreRecord(_input: {
+    id: string;
+    importRunId?: string;
+    expectedAccessEpoch?: number;
+  }): Promise<KnowledgeRecord> {
     throw new KnowledgeUnsupportedError();
   }
   async setRecordScopes(_input: {
@@ -777,6 +804,7 @@ export abstract class KnowledgeStorage extends StorageDomain {
     scopeIds: KnowledgeScopeIds;
     importRunId?: string;
     contextScopeId?: string;
+    expectedAccessEpoch?: number;
   }): Promise<KnowledgeRecord> {
     throw new KnowledgeUnsupportedError();
   }
