@@ -412,7 +412,7 @@ export class KnowledgeLibSQL extends KnowledgeStorage {
     await this.#transaction(tx => this.#initializeSchema(tx));
   }
 
-  async #initializeSchema(tx: Pick<Transaction, 'execute'>): Promise<void> {
+  async #initializeSchema(tx: Pick<Executor, 'execute'>): Promise<void> {
     const { KnowledgeSchemaError } = await loadKnowledgeCore();
     const createTable = (input: Parameters<LibSQLDB['createTable']>[0]) =>
       this.#db.createTable({ ...input, executor: tx });
@@ -566,7 +566,7 @@ export class KnowledgeLibSQL extends KnowledgeStorage {
    * the database untouched. Runs on the caller's init transaction, so a failed canonical creation
    * restores the replaced tables.
    */
-  async #replacePublishedV1(tx: Pick<Transaction, 'execute'>): Promise<boolean> {
+  async #replacePublishedV1(tx: Pick<Executor, 'execute'>): Promise<boolean> {
     const objects = await tx.execute(
       "SELECT type, name FROM sqlite_master WHERE name LIKE 'mastra\\_knowledge\\_%' ESCAPE '\\' OR tbl_name LIKE 'mastra\\_knowledge\\_%' ESCAPE '\\' OR sql LIKE '%mastra\\_knowledge\\_%' ESCAPE '\\'",
     );
