@@ -1,5 +1,58 @@
 # @mastra/playground-ui
 
+## 62.0.0-alpha.4
+
+### Minor Changes
+
+- Added a `reorderable` prop to `DataList`. Users can drag header cells, or press Alt+Arrow on a focused header, to move columns. The column order is saved in localStorage under the list's `id`, so you must also pass `id`. Pass `columnKeys` (one stable key per column) when columns can be shown or hidden, so the saved order survives those changes. ([#26497](https://github.com/mastra-ai/mastra/pull/26497))
+
+  ```tsx
+  <DataList columns="10rem 1fr auto" columnKeys={['name', 'input', 'status']} reorderable id="runs">
+    ...
+  </DataList>
+  ```
+
+  The traces list (Traces page and agent/workflow Traces tabs) now supports reordering every column, including optional, custom and metadata columns.
+
+### Patch Changes
+
+- Fixed the time range picker's "← Presets" button jumping to Last 24 hours. It now returns to the preset you had before opening the custom range, and the preset list marks the current selection. ([#26408](https://github.com/mastra-ai/mastra/pull/26408))
+
+- Metrics charts now show their Y axis, so values can be read straight from the chart: Token usage, Agent runs, Failure rate, Latency and Scores. With no failed runs, Failure rate's axis runs from 0% to 100% instead of an automatic 0 to 400%. ([#26500](https://github.com/mastra-ai/mastra/pull/26500))
+
+- The score panel close button now matches the trace panel: an X on the right, after the previous/next arrows. Score cards in the trace Scores tab no longer have an "Open scorer run" button; the whole card is clickable and opens the score. ([#26507](https://github.com/mastra-ai/mastra/pull/26507))
+
+- The chat `send` function from `useChatSend` can now return a promise. It resolves to `false` when the server can't have stored the message, for example when it refused a request that was too large, so a composer can restore the text and attachments it had cleared: ([#25814](https://github.com/mastra-ai/mastra/pull/25814))
+
+  ```tsx
+  const send = useChatSend();
+
+  const submit = async () => {
+    const draft = { message: text, attachments };
+    clearComposer();
+    const delivered = await send(draft);
+    if (delivered === false) restoreComposer(draft);
+  };
+  ```
+
+- Fixed password managers (1Password, LastPass, Dashlane, Proton Pass) popping up their autofill on ordinary text fields, such as the dataset Name field. Text fields now opt out of password manager autofill by default. Bitwarden skips these fields only when its "Allow websites to exclude fields to autofill" setting is on. Pass an autofill token to opt back in on sign-in and account forms: ([#26512](https://github.com/mastra-ai/mastra/pull/26512))
+
+  ```tsx
+  <Input type="email" autoComplete="email" />
+  <Input type="password" autoComplete="current-password" />
+  ```
+
+- Trace panel column sizes are now remembered per entity type (agent, workflow, scorer, …), so resizing the messages, trace tree, or span columns persists the next time you open a trace of the same kind. ([#26499](https://github.com/mastra-ai/mastra/pull/26499))
+
+- Fixed the whole app bouncing when scrolling past the top or bottom over the sidebar or other areas that don't scroll. Scrollable page content still bounces as before. ([#26511](https://github.com/mastra-ai/mastra/pull/26511))
+
+- Updated dependencies [[`65b62c0`](https://github.com/mastra-ai/mastra/commit/65b62c04c28267ab81f7d6b92ed29ce0ef46671b), [`297e55e`](https://github.com/mastra-ai/mastra/commit/297e55ea3d0eef280c3776bec401584ce3c2bff2), [`38643be`](https://github.com/mastra-ai/mastra/commit/38643beb41ab0d1f67b8754f057781022448a618), [`65b62c0`](https://github.com/mastra-ai/mastra/commit/65b62c04c28267ab81f7d6b92ed29ce0ef46671b), [`57c3117`](https://github.com/mastra-ai/mastra/commit/57c3117dd4d0dd0ad0835edb1bf410b6ec76fba0), [`7a96951`](https://github.com/mastra-ai/mastra/commit/7a96951771a6aab850ceafefc73afe684ef24b21), [`436ea9d`](https://github.com/mastra-ai/mastra/commit/436ea9d4fb8146250bb106fd0f0200ea1cfd47d5), [`65b62c0`](https://github.com/mastra-ai/mastra/commit/65b62c04c28267ab81f7d6b92ed29ce0ef46671b), [`2558c00`](https://github.com/mastra-ai/mastra/commit/2558c00b338025de29f778ca72b6bd05e5726349), [`436ea9d`](https://github.com/mastra-ai/mastra/commit/436ea9d4fb8146250bb106fd0f0200ea1cfd47d5), [`38643be`](https://github.com/mastra-ai/mastra/commit/38643beb41ab0d1f67b8754f057781022448a618)]:
+  - @mastra/core@1.76.0-alpha.4
+  - @mastra/memory@1.37.0-alpha.2
+  - @mastra/client-js@1.53.0-alpha.4
+  - @mastra/ai-sdk@1.11.0-alpha.0
+  - @mastra/react@1.9.0-alpha.4
+
 ## 62.0.0-alpha.3
 
 ### Patch Changes
